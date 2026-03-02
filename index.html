@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>族谱</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'KaiTi', 'STKaiti', 'SimSun', serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      overflow-x: auto;
+    }
+
+    #app {
+      padding: 20px;
+      min-width: 1200px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #fff5e6 0%, #ffe4c4 100%);
+      border-radius: 16px;
+      border: 3px solid #d4a574;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      font-size: 36px;
+      color: #8b4513;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header .subtitle {
+      font-size: 16px;
+      color: #a0522d;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      background: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      border: 2px solid #d4a574;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8b4513;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #a0522d;
+      margin-top: 5px;
+    }
+
+    /* 树形结构样式 */
+    .tree-container {
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+      overflow: auto;
+      min-height: 600px;
+    }
+
+    .tree-level {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .tree-node-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      margin: 0 20px;
+    }
+
+    .tree-node {
+      position: relative;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #fff5e6 0%, #ffe4c4 100%);
+      border: 3px solid #d4a574;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 160px;
+      text-align: center;
+      z-index: 10;
+    }
+
+    .tree-node:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      border-color: #e8a87c;
+    }
+
+    .tree-node.male {
+      background: linear-gradient(135deg, #e6f3ff 0%, #cce5ff 100%);
+      border-color: #667eea;
+    }
+
+    .tree-node.female {
+      background: linear-gradient(135deg, #ffe6f0 0%, #ffccdd 100%);
+      border-color: #f5576c;
+    }
+
+    .node-decoration {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .decoration-corner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 3px solid currentColor;
+      opacity: 0.4;
+    }
+
+    .decoration-corner.top-left {
+      top: 6px;
+      left: 6px;
+      border-right: none;
+      border-bottom: none;
+      border-radius: 8px 0 0 0;
+    }
+
+    .decoration-corner.top-right {
+      top: 6px;
+      right: 6px;
+      border-left: none;
+      border-bottom: none;
+      border-radius: 0 8px 0 0;
+    }
+
+    .decoration-corner.bottom-left {
+      bottom: 6px;
+      left: 6px;
+      border-right: none;
+      border-top: none;
+      border-radius: 0 0 0 8px;
+    }
+
+    .decoration-corner.bottom-right {
+      bottom: 6px;
+      right: 6px;
+      border-left: none;
+      border-top: none;
+      border-radius: 0 0 8px 0;
+    }
+
+    .node-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 8px;
+    }
+
+    .node-info {
+      font-size: 13px;
+      color: #7f8c8d;
+      line-height: 1.6;
+    }
+
+    .node-gender-icon {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .node-gender-icon.male {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .node-gender-icon.female {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .expand-btn {
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #d4a574 0%, #e8a87c 100%);
+      border: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .expand-btn:hover {
+      transform: translateX(-50%) scale(1.1);
+    }
+
+    .expand-btn.expanded {
+      transform: translateX(-50%) rotate(180deg);
+    }
+
+    /* 连接线样式 */
+    .couple-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .spouse-connector {
+      font-size: 24px;
+      color: #e74c3c;
+      animation: heartbeat 1.5s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .tree-node-wrapper.spouse .tree-node {
+      opacity: 0.9;
+      transform: scale(0.95);
+    }
+
+    .node-desc {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .children-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 50px;
+      position: relative;
+    }
+
+    .children-container::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 50px;
+      background: linear-gradient(to bottom, #d4a574, #e8a87c);
+    }
+
+    .child-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .child-wrapper::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      width: 2px;
+      height: 50px;
+      background: linear-gradient(to bottom, #d4a574, #e8a87c);
+    }
+
+    .child-wrapper:first-child::after,
+    .child-wrapper:last-child::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      height: 2px;
+      background: linear-gradient(to right, #d4a574, #e8a87c);
+    }
+
+    .child-wrapper:first-child::after {
+      left: 50%;
+      right: 0;
+    }
+
+    .child-wrapper:last-child::after {
+      left: 0;
+      right: 50%;
+    }
+
+    .child-wrapper:only-child::after {
+      display: none;
+    }
+
+    /* 加载动画 */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #d4a574;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #8b4513;
+    }
+
+    /* 性能提示 */
+    .performance-tip {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      border: 2px solid #d4a574;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      max-width: 300px;
+    }
+
+    .performance-tip h4 {
+      color: #8b4513;
+      margin-bottom: 8px;
+    }
+
+    .performance-tip p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .tree-container {
+        padding: 20px 10px;
+      }
+
+      .tree-node {
+        min-width: 120px;
+        padding: 12px 16px;
+      }
+
+      .node-name {
+        font-size: 16px;
+      }
+
+      .tree-node-wrapper {
+        margin: 0 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 加载遮罩 -->
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">正在生成族谱数据...</div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div v-if="error" class="error-message" style="
+      background: #fee;
+      border: 2px solid #c00;
+      color: #c00;
+      padding: 15px 25px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 16px;
+    ">
+      ⚠️ {{ error }}
+    </div>
+
+    <!-- 头部 -->
+    <div class="header">
+      <h1>⛩️ 家族族谱</h1>
+      <!-- <div class="subtitle">高性能树形数据渲染演示</div> -->
+    </div>
+
+    <!-- 控制按钮 -->
+    <div class="controls">
+      <!-- <button class="btn btn-primary" @click="generateData(50)">生成 50 人</button>
+      <button class="btn btn-primary" @click="generateData(100)">生成 100 人</button>
+      <button class="btn btn-primary" @click="generateData(200)">生成 200 人</button>
+      <button class="btn btn-success" @click="generateData(500)">生成 500 人</button> -->
+      <button class="btn btn-warning" @click="expandAll">展开全部</button>
+      <button class="btn btn-warning" @click="collapseAll">折叠全部</button>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-value">{{ totalNodes }}</div>
+        <div class="stat-label">总节点数</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ visibleNodes }}</div>
+        <div class="stat-label">可见节点</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ maxDepth }}</div>
+        <div class="stat-label">最大深度</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{ renderTime }}ms</div>
+        <div class="stat-label">渲染耗时</div>
+      </div>
+    </div>
+
+    <!-- 树形族谱 -->
+    <div class="tree-container">
+      <tree-node 
+        v-if="treeData" 
+        :node="treeData" 
+        @toggle="handleToggle"
+      />
+    </div>
+
+    <!-- 性能提示 -->
+    <!-- <div class="performance-tip">
+      <h4>💡 性能优化提示</h4>
+      <p>
+        • 使用懒加载：只渲染展开的节点<br>
+        • 虚拟滚动：只渲染可见区域<br>
+        • 当前架构支持 1000+ 节点流畅渲染
+      </p>
+    </div> -->
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    // 树节点组件
+    const TreeNode = {
+      name: 'TreeNode',
+      props: {
+        node: {
+          type: Object,
+          required: true
+        }
+      },
+      emits: ['toggle'],
+      setup(props, { emit }) {
+        const hasChildren = computed(() => {
+          return props.node.children && props.node.children.length > 0;
+        });
+
+        const hasSpouse = computed(() => {
+          return props.node.spouse && props.node.spouse.name;
+        });
+
+        const toggleExpand = () => {
+          emit('toggle', props.node);
+        };
+
+        const handleChildToggle = (childNode) => {
+          emit('toggle', childNode);
+        };
+
+        return {
+          hasChildren,
+          hasSpouse,
+          toggleExpand,
+          handleChildToggle
+        };
+      },
+      template: `
+        <div class="tree-level">
+          <div class="couple-wrapper">
+            <!-- 主节点 -->
+            <div class="tree-node-wrapper">
+              <div 
+                class="tree-node" 
+                :class="node.gender"
+                @click="toggleExpand"
+              >
+                <div class="node-decoration">
+                  <div class="decoration-corner top-left"></div>
+                  <div class="decoration-corner top-right"></div>
+                  <div class="decoration-corner bottom-left"></div>
+                  <div class="decoration-corner bottom-right"></div>
+                </div>
+                
+                <div class="node-gender-icon" :class="node.gender">
+                  {{ node.gender === 'male' ? '男' : '女' }}
+                </div>
+                
+                <div class="node-name">{{ node.name || '未命名' }}</div>
+                <div class="node-info">
+                  <div v-if="node.birthDate">{{ node.birthDate }}</div>
+                  <div v-if="node.deathDate">{{ node.deathDate }}</div>
+                  <div v-if="node.description" class="node-desc">{{ node.description }}</div>
+                </div>
+                
+                <div 
+                  v-if="hasChildren" 
+                  class="expand-btn"
+                  :class="{ expanded: node.expanded }"
+                  @click.stop="toggleExpand"
+                >
+                  {{ node.expanded ? '−' : '+' }}
+                </div>
+              </div>
+            </div>
+            
+            <!-- 配偶节点❤️ -->
+            <div v-if="hasSpouse" class="spouse-connector">--</div>
+            
+            <div v-if="hasSpouse" class="tree-node-wrapper spouse">
+              <div 
+                class="tree-node" 
+                :class="node.spouse.gender"
+              >
+                <div class="node-decoration">
+                  <div class="decoration-corner top-left"></div>
+                  <div class="decoration-corner top-right"></div>
+                  <div class="decoration-corner bottom-left"></div>
+                  <div class="decoration-corner bottom-right"></div>
+                </div>
+                
+                <div class="node-gender-icon" :class="node.spouse.gender">
+                  {{ node.spouse.gender === 'male' ? '男' : '女' }}
+                </div>
+                
+                <div class="node-name">{{ node.spouse.name || '未命名' }}</div>
+                <div class="node-info">
+                  <div v-if="node.spouse.birthDate">{{ node.spouse.birthDate }}</div>
+                  <div v-if="node.spouse.deathDate">{{ node.spouse.deathDate }}</div>
+                  <div v-if="node.spouse.description" class="node-desc">{{ node.spouse.description }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div v-if="node.expanded && hasChildren" class="children-container">
+            <div 
+              v-for="child in node.children" 
+              :key="child.id"
+              class="child-wrapper"
+            >
+              <tree-node 
+                :node="child" 
+                @toggle="handleChildToggle"
+              />
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    // 主应用
+    createApp({
+      components: {
+        TreeNode
+      },
+      setup() {
+        const treeData = ref(null);
+        const loading = ref(false);
+        const renderTime = ref(0);
+        const totalNodesCount = ref(0);
+        const maxDepthValue = ref(0);
+        const error = ref(null);
+
+        // 从 JSON 文件加载族谱数据
+        const loadFamilyData = async () => {
+          loading.value = true;
+          error.value = null;
+          
+          try {
+            const startTime = performance.now();
+            
+            // 加载 JSON 文件
+            const response = await fetch('./family-tree-2026-03-02.json');
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const rawData = await response.json();
+            
+            // 处理数据，添加必要的字段
+            const processedData = processFamilyData(rawData);
+            treeData.value = processedData;
+            
+            // 计算统计信息
+            totalNodesCount.value = countNodes(processedData);
+            maxDepthValue.value = calculateDepth(processedData);
+            
+            const endTime = performance.now();
+            renderTime.value = Math.round(endTime - startTime);
+            
+          } catch (err) {
+            console.error('加载族谱数据失败:', err);
+            error.value = '加载族谱数据失败，请检查文件是否存在';
+            // 如果加载失败，使用测试数据
+            await generateData(50);
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        // 处理族谱数据，添加展开状态等字段
+        const processFamilyData = (node, depth = 0) => {
+          if (!node) return null;
+          
+          // 创建新对象，避免修改原始数据
+          const processedNode = {
+            ...node,
+            expanded: depth < 2, // 默认展开前两层
+            depth: depth
+          };
+          
+          // 处理配偶数据
+          if (node.spouse) {
+            processedNode.spouse = {
+              ...node.spouse,
+              gender: node.spouse.gender || 'female'
+            };
+          }
+          
+          // 递归处理子节点
+          if (node.children && node.children.length > 0) {
+            processedNode.children = node.children.map(child => 
+              processFamilyData(child, depth + 1)
+            );
+          }
+          
+          return processedNode;
+        };
+
+        // 生成测试数据（作为备用）
+        const generateData = async (count) => {
+          loading.value = true;
+          
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          const startTime = performance.now();
+          
+          const data = generateFamilyTree(count);
+          treeData.value = data;
+          
+          totalNodesCount.value = countNodes(data);
+          maxDepthValue.value = calculateDepth(data);
+          
+          const endTime = performance.now();
+          renderTime.value = Math.round(endTime - startTime);
+          
+          loading.value = false;
+        };
+
+        // 生成家族树数据
+        const generateFamilyTree = (totalCount) => {
+          const surnames = ['张', '王', '李', '刘', '陈', '杨', '黄', '赵', '周', '吴'];
+          const names = ['伟', '芳', '娜', '秀英', '敏', '静', '丽', '强', '磊', '洋', '艳', '勇', '军', '杰', '娟'];
+          
+          let idCounter = 0;
+          
+          const createNode = (depth = 0, parentId = null) => {
+            const id = `node-${idCounter++}`;
+            const surname = surnames[Math.floor(Math.random() * surnames.length)];
+            const name = names[Math.floor(Math.random() * names.length)];
+            const gender = Math.random() > 0.5 ? 'male' : 'female';
+            const birthYear = 1950 + Math.floor(Math.random() * 50);
+            const hasDeath = Math.random() > 0.8;
+            const hasSpouse = Math.random() > 0.3;
+            
+            const node = {
+              id,
+              name: `${surname}${name}`,
+              gender,
+              birthDate: `${birthYear}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
+              deathDate: hasDeath ? `${birthYear + 60 + Math.floor(Math.random() * 30)}-01-01` : null,
+              expanded: depth < 2,
+              children: [],
+              depth
+            };
+            
+            // 添加配偶
+            if (hasSpouse) {
+              const spouseSurname = surnames[Math.floor(Math.random() * surnames.length)];
+              const spouseName = names[Math.floor(Math.random() * names.length)];
+              const spouseGender = gender === 'male' ? 'female' : 'male';
+              const spouseBirthYear = birthYear + Math.floor(Math.random() * 10) - 5;
+              const spouseHasDeath = Math.random() > 0.8;
+              
+              node.spouse = {
+                name: `${spouseSurname}${spouseName}`,
+                gender: spouseGender,
+                birthDate: `${spouseBirthYear}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
+                deathDate: spouseHasDeath ? `${spouseBirthYear + 60 + Math.floor(Math.random() * 30)}-01-01` : null,
+                description: '配偶'
+              };
+            }
+            
+            return node;
+          };
+
+          const root = createNode(0);
+          const queue = [root];
+          let createdCount = 1;
+          
+          while (queue.length > 0 && createdCount < totalCount) {
+            const current = queue.shift();
+            
+            const childCount = Math.min(
+              Math.floor(Math.random() * 4),
+              totalCount - createdCount
+            );
+            
+            for (let i = 0; i < childCount; i++) {
+              const child = createNode(current.depth + 1, current.id);
+              current.children.push(child);
+              queue.push(child);
+              createdCount++;
+              
+              if (createdCount >= totalCount) break;
+            }
+          }
+          
+          return root;
+        };
+
+        // 计算节点总数
+        const countNodes = (node) => {
+          if (!node) return 0;
+          let count = 1;
+          if (node.children) {
+            for (const child of node.children) {
+              count += countNodes(child);
+            }
+          }
+          return count;
+        };
+
+        // 计算最大深度
+        const calculateDepth = (node) => {
+          if (!node || !node.children || node.children.length === 0) {
+            return node ? node.depth : 0;
+          }
+          let maxChildDepth = node.depth;
+          for (const child of node.children) {
+            const childDepth = calculateDepth(child);
+            maxChildDepth = Math.max(maxChildDepth, childDepth);
+          }
+          return maxChildDepth;
+        };
+
+        // 计算可见节点数
+        const countVisibleNodes = (node) => {
+          if (!node) return 0;
+          let count = 1;
+          if (node.expanded && node.children) {
+            for (const child of node.children) {
+              count += countVisibleNodes(child);
+            }
+          }
+          return count;
+        };
+
+        // 展开/折叠节点
+        const handleToggle = (node) => {
+          node.expanded = !node.expanded;
+        };
+
+        // 展开全部
+        const expandAll = () => {
+          const expand = (node) => {
+            node.expanded = true;
+            if (node.children) {
+              node.children.forEach(expand);
+            }
+          };
+          if (treeData.value) {
+            expand(treeData.value);
+          }
+        };
+
+        // 折叠全部
+        const collapseAll = () => {
+          const collapse = (node) => {
+            node.expanded = false;
+            if (node.children) {
+              node.children.forEach(collapse);
+            }
+          };
+          if (treeData.value) {
+            collapse(treeData.value);
+          }
+        };
+
+        // 计算属性
+        const totalNodes = computed(() => totalNodesCount.value);
+        const visibleNodes = computed(() => {
+          return treeData.value ? countVisibleNodes(treeData.value) : 0;
+        });
+        const maxDepth = computed(() => maxDepthValue.value);
+
+        // 初始化
+        onMounted(() => {
+          loadFamilyData();
+        });
+
+        return {
+          treeData,
+          loading,
+          error,
+          renderTime,
+          totalNodes,
+          visibleNodes,
+          maxDepth,
+          generateData,
+          handleToggle,
+          expandAll,
+          collapseAll
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
