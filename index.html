@@ -654,54 +654,467 @@
     };
 
     // 主应用
-    createApp({
-      components: {
-        TreeNode
-      },
-      setup() {
-        const treeData = ref(null);
-        const loading = ref(false);
-        const renderTime = ref(0);
-        const totalNodesCount = ref(0);
-        const maxDepthValue = ref(0);
-        const error = ref(null);
+     createApp({
+       components: {
+         TreeNode
+       },
+       setup() {
+         const treeData = ref(null);
+         const loading = ref(false);
+         const renderTime = ref(0);
+         const totalNodesCount = ref(0);
+         const maxDepthValue = ref(0);
+         const error = ref(null);
 
-        // 从 JSON 文件加载族谱数据
-        const loadFamilyData = async () => {
-          loading.value = true;
-          error.value = null;
-          
-          try {
-            const startTime = performance.now();
-            
-            // 加载 JSON 文件
-            const response = await fetch('./family-tree-2026-03-02.json');
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+         // 家族数据（内联）
+         const familyData = {
+  "id": 1,
+  "name": "信亮",
+  "gender": "male",
+  "birthDate": "1900-01-01",
+  "deathDate": "1980-12-31",
+  "description": "家族的祖先",
+  "spouse": {
+    "id": 2,
+    "name": "未知",
+    "gender": "female",
+    "birthDate": "1905-01-01",
+    "deathDate": "1985-12-31",
+    "description": "家族的祖母"
+  },
+  "expanded": true,
+  "children": [
+    {
+      "id": 1772272015212,
+      "name": "守诏",
+      "gender": "male",
+      "birthDate": "",
+      "deathDate": "",
+      "description": "",
+      "expanded": true,
+      "children": [
+        {
+          "id": 1772272018476,
+          "name": "丹可",
+          "gender": "male",
+          "birthDate": "",
+          "deathDate": "",
+          "description": "",
+          "expanded": true,
+          "children": [
+            {
+              "id": 1772419548953,
+              "name": "继武",
+              "gender": "male",
+              "birthDate": "",
+              "deathDate": "",
+              "description": "",
+              "expanded": true,
+              "children": [
+                {
+                  "id": 1772419577450,
+                  "name": "正瑶",
+                  "gender": "male",
+                  "birthDate": "",
+                  "deathDate": "",
+                  "description": "",
+                  "expanded": true
+                },
+                {
+                  "id": 1772419588643,
+                  "name": "正琼",
+                  "gender": "male",
+                  "birthDate": "",
+                  "deathDate": "",
+                  "description": "",
+                  "expanded": true
+                },
+                {
+                  "id": 1772419605810,
+                  "name": "正琏",
+                  "gender": "male",
+                  "birthDate": "",
+                  "deathDate": "",
+                  "description": "",
+                  "expanded": true,
+                  "children": [
+                    {
+                      "id": 1772419629914,
+                      "name": "应芳",
+                      "gender": "male",
+                      "birthDate": "",
+                      "deathDate": "",
+                      "description": "",
+                      "expanded": true,
+                      "children": [
+                        {
+                          "id": 1772419641579,
+                          "name": "世历",
+                          "gender": "male",
+                          "birthDate": "",
+                          "deathDate": "",
+                          "description": "",
+                          "expanded": true,
+                          "children": [
+                            {
+                              "id": 1772419669050,
+                              "name": "永任",
+                              "gender": "male",
+                              "birthDate": "",
+                              "deathDate": "",
+                              "description": "",
+                              "expanded": true,
+                              "children": [
+                                {
+                                  "id": 1772419711849,
+                                  "name": "承幸",
+                                  "gender": "male",
+                                  "birthDate": "",
+                                  "deathDate": "",
+                                  "description": "",
+                                  "expanded": true
+                                },
+                                {
+                                  "id": 1772419736674,
+                                  "name": "承麒",
+                                  "gender": "male",
+                                  "birthDate": "",
+                                  "deathDate": "",
+                                  "description": "",
+                                  "expanded": true,
+                                  "children": [
+                                    {
+                                      "id": 1772419766369,
+                                      "name": "荫煌",
+                                      "gender": "male",
+                                      "birthDate": "",
+                                      "deathDate": "",
+                                      "description": "",
+                                      "expanded": true
+                                    },
+                                    {
+                                      "id": 1772419777394,
+                                      "name": "荫辉",
+                                      "gender": "male",
+                                      "birthDate": "",
+                                      "deathDate": "",
+                                      "description": "",
+                                      "expanded": true,
+                                      "children": [
+                                        {
+                                          "id": 1772419894666,
+                                          "name": "定祚",
+                                          "gender": "male",
+                                          "birthDate": "",
+                                          "deathDate": "",
+                                          "description": "",
+                                          "expanded": true,
+                                          "children": [
+                                            {
+                                              "id": 1772419947050,
+                                              "name": "蕃池",
+                                              "gender": "male",
+                                              "birthDate": "",
+                                              "deathDate": "",
+                                              "description": "",
+                                              "expanded": true,
+                                              "children": [
+                                                {
+                                                  "id": 1772419996496,
+                                                  "name": "昌银",
+                                                  "gender": "male",
+                                                  "birthDate": "",
+                                                  "deathDate": "",
+                                                  "description": "",
+                                                  "expanded": true,
+                                                  "children": []
+                                                },
+                                                {
+                                                  "id": 1772420003233,
+                                                  "name": "昌金",
+                                                  "gender": "male",
+                                                  "birthDate": "",
+                                                  "deathDate": "",
+                                                  "description": "",
+                                                  "expanded": true,
+                                                  "children": [
+                                                    {
+                                                      "id": 1772420031682,
+                                                      "name": "家梅",
+                                                      "gender": "male",
+                                                      "birthDate": "",
+                                                      "deathDate": "",
+                                                      "description": "",
+                                                      "expanded": true,
+                                                      "children": [
+                                                        {
+                                                          "id": 1772420178714,
+                                                          "name": "传棵",
+                                                          "gender": "male",
+                                                          "birthDate": "",
+                                                          "deathDate": "",
+                                                          "description": "",
+                                                          "expanded": true
+                                                        },
+                                                        {
+                                                          "id": 1772420188488,
+                                                          "name": "传飞",
+                                                          "gender": "male",
+                                                          "birthDate": "",
+                                                          "deathDate": "",
+                                                          "description": "",
+                                                          "expanded": true
+                                                        },
+                                                        {
+                                                          "id": 1772420195449,
+                                                          "name": "传晏",
+                                                          "gender": "male",
+                                                          "birthDate": "",
+                                                          "deathDate": "",
+                                                          "description": "",
+                                                          "expanded": true
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "id": 1772420042001,
+                                                      "name": "家杰",
+                                                      "gender": "male",
+                                                      "birthDate": "",
+                                                      "deathDate": "",
+                                                      "description": "",
+                                                      "expanded": true,
+                                                      "children": [
+                                                        {
+                                                          "id": 1772420204194,
+                                                          "name": "传烽",
+                                                          "gender": "male",
+                                                          "birthDate": "",
+                                                          "deathDate": "",
+                                                          "description": "",
+                                                          "expanded": true
+                                                        },
+                                                        {
+                                                          "id": 1772420211881,
+                                                          "name": "传淮",
+                                                          "gender": "male",
+                                                          "birthDate": "",
+                                                          "deathDate": "",
+                                                          "description": "",
+                                                          "expanded": true
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "id": 1772420054081,
+                                                      "name": "家杏",
+                                                      "gender": "male",
+                                                      "birthDate": "",
+                                                      "deathDate": "",
+                                                      "description": "",
+                                                      "expanded": true,
+                                                      "children": [
+                                                        {
+                                                          "id": 1772420123721,
+                                                          "name": "传炉",
+                                                          "gender": "male",
+                                                          "birthDate": "",
+                                                          "deathDate": "",
+                                                          "description": "",
+                                                          "expanded": true
+                                                        },
+                                                        {
+                                                          "id": 1772420160282,
+                                                          "name": "传星",
+                                                          "gender": "male",
+                                                          "birthDate": "",
+                                                          "deathDate": "",
+                                                          "description": "",
+                                                          "expanded": true
+                                                        },
+                                                        {
+                                                          "id": 1772420167329,
+                                                          "name": "传安",
+                                                          "gender": "male",
+                                                          "birthDate": "",
+                                                          "deathDate": "",
+                                                          "description": "",
+                                                          "expanded": true
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "id": 1772419955226,
+                                              "name": "蕃汗",
+                                              "gender": "male",
+                                              "birthDate": "",
+                                              "deathDate": "",
+                                              "description": "",
+                                              "expanded": true,
+                                              "children": []
+                                            },
+                                            {
+                                              "id": 1772419978713,
+                                              "name": "蕃望",
+                                              "gender": "male",
+                                              "birthDate": "",
+                                              "deathDate": "",
+                                              "description": "",
+                                              "expanded": true
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "id": 1772419905512,
+                                          "name": "先祚",
+                                          "gender": "male",
+                                          "birthDate": "",
+                                          "deathDate": "",
+                                          "description": "",
+                                          "expanded": true
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": 1772419741458,
+                                  "name": "承麟",
+                                  "gender": "male",
+                                  "birthDate": "",
+                                  "deathDate": "",
+                                  "description": "",
+                                  "expanded": true
+                                }
+                              ]
+                            },
+                            {
+                              "id": 1772419677842,
+                              "name": "永信",
+                              "gender": "male",
+                              "birthDate": "",
+                              "deathDate": "",
+                              "description": "",
+                              "expanded": true
+                            }
+                          ]
+                        },
+                        {
+                          "id": 1772419656259,
+                          "name": "世盛",
+                          "gender": "male",
+                          "birthDate": "",
+                          "deathDate": "",
+                          "description": "",
+                          "expanded": true
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": 1772419621049,
+                  "name": "正瑚",
+                  "gender": "male",
+                  "birthDate": "",
+                  "deathDate": "",
+                  "description": "",
+                  "expanded": true
+                }
+              ]
+            },
+            {
+              "id": 1772419561241,
+              "name": "继文",
+              "gender": "male",
+              "birthDate": "",
+              "deathDate": "",
+              "description": "",
+              "expanded": true
+            },
+            {
+              "id": 1772419567130,
+              "name": "继学",
+              "gender": "male",
+              "birthDate": "",
+              "deathDate": "",
+              "description": "",
+              "expanded": true
             }
-            
-            const rawData = await response.json();
-            
-            // 处理数据，添加必要的字段
-            const processedData = processFamilyData(rawData);
-            treeData.value = processedData;
-            
-            // 计算统计信息
-            totalNodesCount.value = countNodes(processedData);
-            maxDepthValue.value = calculateDepth(processedData);
-            
-            const endTime = performance.now();
-            renderTime.value = Math.round(endTime - startTime);
-            
-          } catch (err) {
-            console.error('加载族谱数据失败:', err);
-            error.value = '加载族谱数据失败，请检查文件是否存在';
-            // 如果加载失败，使用测试数据
-            await generateData(50);
-          } finally {
-            loading.value = false;
-          }
-        };
+          ]
+        }
+      ],
+      "spouse": {
+        "id": 1772272024684,
+        "name": "",
+        "gender": "female",
+        "birthDate": "",
+        "deathDate": "",
+        "description": ""
+      }
+    },
+    {
+      "id": 1772272015947,
+      "name": "守阖",
+      "gender": "male",
+      "birthDate": "",
+      "deathDate": "",
+      "description": "",
+      "expanded": true
+    },
+    {
+      "id": 1772272016419,
+      "name": "",
+      "gender": "female",
+      "birthDate": "",
+      "deathDate": "",
+      "description": "",
+      "expanded": true
+    },
+    {
+      "id": 1772419511569,
+      "name": "守坤",
+      "gender": "male",
+      "birthDate": "",
+      "deathDate": "",
+      "description": "",
+      "expanded": true
+    }
+  ]
+};
+
+         // 加载家族数据
+         const loadFamilyData = async () => {
+           loading.value = true;
+           error.value = null;
+           
+           try {
+             const startTime = performance.now();
+             
+             // 直接使用内联数据
+             const processedData = processFamilyData(familyData);
+             treeData.value = processedData;
+             
+             // 计算统计信息
+             totalNodesCount.value = countNodes(processedData);
+             maxDepthValue.value = calculateDepth(processedData);
+             
+             const endTime = performance.now();
+             renderTime.value = Math.round(endTime - startTime);
+             
+           } catch (err) {
+             console.error('加载族谱数据失败:', err);
+             error.value = '加载族谱数据失败';
+             // 如果加载失败，使用测试数据
+             await generateData(50);
+           } finally {
+             loading.value = false;
+           }
+         };
 
         // 处理族谱数据，添加展开状态等字段
         const processFamilyData = (node, depth = 0) => {
